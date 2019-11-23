@@ -53,7 +53,7 @@ sol = solve(prob,SciPyDiffEq.RK45())
 ## Measuring Overhead
 
 In the following we can measure the overhead and show that using SciPy from Julia
-is about 38x faster than using SciPy with Numba. Using SciPyDiffEq:
+is about 3x faster than using SciPy with Numba. Using SciPyDiffEq:
 
 ```julia
 using SciPyDiffEq, BenchmarkTools
@@ -64,13 +64,13 @@ function lorenz(u,p,t)
     du3 = u[1]*u[2] - (8/3)*u[3]
     [du1, du2, du3]
 end
-tspan = (0.0,10.0)
+tspan = (0.0,100.0)
 u0 = [1.0,0.0,0.0]
 prob = ODEProblem(lorenz,u0,tspan)
-@btime sol = solve(prob,SciPyDiffEq.RK45(),dense=false, abstol=1e-8,reltol=1e-8) # 211.784 ms (315699 allocations: 13.08 MiB)
+@btime sol = solve(prob,SciPyDiffEq.RK45(),dense=false, abstol=1e-8,reltol=1e-8) # 2.760 s (4426860 allocations: 182.27 MiB)
 ```
 
-This gives 211ms. Solving the equivalent problem with SciPy is:
+This gives 2.76s. Solving the equivalent problem with SciPy `odeint` is:
 
 ```py
 import numpy as np
@@ -105,8 +105,47 @@ _t = timeit.Timer(time_func).timeit(number=100)
 print(_t) # 8.05035870000006 seconds
 ```
 
-which takes 8 seconds. Together, this showcases a 38x speedup by using the Julia
-based interface, so overhead concerns in future benchmarks are gone.
+which takes 8 seconds. Solving it with SciPy `solve_ivp` is:
+
+```py
+import numpy as np
+from scipy.integrate import solve_ivp
+import timeit
+import numba
+def f(t,u):
+    x, y, z = u
+    return [10.0 * (y - x), x * (28.0 - z) - y, x * y - 2.66 * z]
+
+u0 = [1.0,0.0,0.0]
+tspan = (0.0, 100.0)
+t = np.linspace(0, 100, 1001)
+sol = solve_ivp(f,(0.0, 100.0),u0,t_eval=t)
+
+def time_func():
+    solve_ivp(f,(0.0, 100.0),u0,t_eval=t)
+
+_t = timeit.Timer(time_func).timeit(number=100)
+print(_t) # 15.978812399999999 seconds
+```
+
+and
+
+```py
+numba_f = numba.jit(f,nopython=True)
+sol = solve_ivp(numba_f,(0.0, 100.0),u0,t_eval=t)
+
+def time_func():
+   solve_ivp(numba_f,(0.0, 100.0),u0,t_eval=t)
+
+_t = timeit.Timer(time_func).timeit(number=100)
+print(_t) # 14.302745000000002 seconds
+```
+
+which Numba seems to be unable to effectively accelerate. Together, this
+showcases a 3x speedup over the best SciPy+Numba setup by using the Julia based
+interface, (and 5x head-to-head via `solve_ivp`) so overhead concerns in future
+benchmarks are gone because any measurement here is accelerating SciPy more
+than standard accelerated use.
 
 ## Benchmarks
 
@@ -209,7 +248,7 @@ setups = [Dict(:alg=>Rosenbrock23()),
           Dict(:alg=>MATLABDiffEq.ode23s())
           Dict(:alg=>MATLABDiffEq.ode15s())
           ]
-          
+
 wp = WorkPrecisionSet(prob,abstols,reltols,setups;
                       save_everystep=false,appxsol=test_sol,maxiters=Int(1e5),numruns=100)
 plot(wp,title="Stiff 1: ROBER")

@@ -40,12 +40,20 @@ function DiffEqBase.__solve(
     end
 
     _saveat = isempty(saveat) ? nothing : saveat
+    if _saveat isa Array
+        __saveat = _saveat
+    elseif _saveat isa Number
+        __saveat = Array(tspan[1]:_saveat:tspan[2])
+    else
+        __saveat = Array(_saveat)
+    end
 
     sol = integrate.solve_ivp(f,tspan,u0,
                               first_step = dt,
                               max_step = dtmax,
                               rtol = reltol, atol = abstol,
-                              t_eval = _saveat,dense_output=dense)
+                              t_eval = __saveat,
+                              dense_output=dense)
 
     ts = sol["t"]
     y = sol["y"]
