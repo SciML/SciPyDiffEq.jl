@@ -44,6 +44,8 @@ function DiffEqBase.__solve(
         __saveat = _saveat
     elseif _saveat isa Number
         __saveat = Array(tspan[1]:_saveat:tspan[2])
+    elseif _saveat isa Nothing
+        __saveat = nothing
     else
         __saveat = Array(_saveat)
     end
