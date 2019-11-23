@@ -231,10 +231,11 @@ setups = [Dict(:alg=>DP5())
           Dict(:alg=>Tsit5())
           Dict(:alg=>Vern7())
           Dict(:alg=>MATLABDiffEq.ode45())
+          Dict(:alg=>MATLABDiffEq.ode113())
           Dict(:alg=>SciPyDiffEq.RK45())
           Dict(:alg=>SciPyDiffEq.LSODA())
-          Dict(:alg=>MATLABDiffEq.ode113())
           Dict(:alg=>deSolveDiffEq.lsoda())
+          Dict(:alg=>deSolveDiffEq.ode45())
           Dict(:alg=>CVODE_Adams())
   ]
 
