@@ -21,8 +21,9 @@ function DiffEqBase.__solve(
     prob::DiffEqBase.AbstractODEProblem,
     alg::SciPyAlgoritm,timeseries=[],ts=[],ks=[];
     dense = true, dt = nothing, dtmax = abs(prob.tspan[2] - prob.tspan[1]),
-    dtmin = eps(eltype(prob.tspan)),
-    saveat=eltype(prob.tspan)[],timeseries_errors=true,reltol = 1e-3, abstol = 1e-6,
+    dtmin = eps(eltype(prob.tspan)),save_everystep = false,
+    saveat=eltype(prob.tspan)[],timeseries_errors=true,
+    reltol = 1e-3, abstol = 1e-6,
     kwargs...)
 
     p = prob.p
@@ -45,7 +46,11 @@ function DiffEqBase.__solve(
     elseif _saveat isa Number
         __saveat = Array(tspan[1]:_saveat:tspan[2])
     elseif _saveat isa Nothing
-        __saveat = nothing
+        if save_everystep
+            __saveat = nothing
+        else
+            __saveat = [tspan[1],tspan[2]]
+        end
     else
         __saveat = Array(_saveat)
     end
@@ -59,6 +64,8 @@ function DiffEqBase.__solve(
 
     ts = sol["t"]
     y = sol["y"]
+
+    retcode = sol["success"] == false ? :Failure : :Success
 
     if typeof(u0) <: AbstractArray
         timeseries = Vector{typeof(u0)}(undef,length(ts))
@@ -77,6 +84,8 @@ function DiffEqBase.__solve(
 
     DiffEqBase.build_solution(prob,alg,ts,timeseries,
                               interp = _interp,
+                              dense = dense,
+                              retcode = retcode,
                               timeseries_errors = timeseries_errors)
 end
 
