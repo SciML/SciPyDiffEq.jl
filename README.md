@@ -218,8 +218,6 @@ savefig("benchmark1.png")
 #### Non-Stiff Problem 2: Rigid Body
 
 ```julia
-
-
 f = @ode_def_bare RigidBodyBench begin
   dy1  = -2*y2*y3
   dy2  = 1.25*y1*y3
@@ -272,8 +270,6 @@ savefig("benchmark2.png")
 #### Stiff Problem 1: ROBER Shorter and Simpler for SciPy
 
 ```julia
-
-
 rober = @ode_def begin
   dy₁ = -k₁*y₁+k₃*y₂*y₃
   dy₂ =  k₁*y₁-k₂*y₂^2-k₃*y₂*y₃
@@ -328,8 +324,6 @@ savefig("benchmark31.png")
 See note below.
 
 ```julia
-
-
 prob = ODEProblem(rober,[1.0,0.0,0.0],(0.0,1e5),[0.04,3e7,1e4])
 sol = solve(prob,CVODE_BDF(),abstol=1/10^14,reltol=1/10^14)
 test_sol = TestSolution(sol)
