@@ -8,9 +8,10 @@ ordinary differential equation solvers. It uses the
 [PyCall.jl](https://github.com/JuliaPy/PyCall.jl) interop in order to
 send the differential equation over to Python and solve it.
 
-Note that this package isn't for production use and is mostly just for benchmarking.
-For well-developed differential equation package, see
-[DifferentialEquations.jl](https://github.com/JuliaDiffEq/DifferentialEquations.jl).
+Note that this package isn't for production use and is mostly just for benchmarking
+and helping new users migrate models over to Julia.
+For more efficient solvers, see the
+[DifferentialEquations.jl documentation](https://github.com/JuliaDiffEq/DifferentialEquations.jl).
 
 ## Installation
 
@@ -155,13 +156,13 @@ a range of stiff and non-stiff ODEs. These were ran with Julia 1.2, MATLAB
 2019B, deSolve 1.2.5, and SciPy 1.3.1 after verifying negligible overhead on
 interop.
 
+#### Non-Stiff Problem 1: Lotka-Volterra
+
 ```julia
 using ParameterizedFunctions, MATLABDiffEq, OrdinaryDiffEq, ODEInterface,
       ODEInterfaceDiffEq, Plots, Sundials, SciPyDiffEq, deSolveDiffEq
 using DiffEqDevTools
 using LinearAlgebra
-
-## Non-Stiff Problem 1: Lotka-Volterra
 
 f = @ode_def_bare LotkaVolterra begin
   dx = a*x - b*x*y
