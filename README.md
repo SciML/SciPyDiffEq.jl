@@ -157,7 +157,8 @@ a range of stiff and non-stiff ODEs. These were ran with Julia 1.2, MATLAB
 2019B, deSolve 1.2.5, and SciPy 1.3.1 after verifying negligible overhead on
 interop.
 
-(Yes, it sounds ridiculous, so run the benchmarks yourself)
+(Yes, it sounds ridiculous, so run the benchmark problems yourself in both Julia and Python
+to prove it.)
 
 #### Non-Stiff Problem 1: Lotka-Volterra
 
