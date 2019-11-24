@@ -151,11 +151,13 @@ than standard accelerated use.
 
 ## Benchmarks
 
-The following benchmarks demonstrate a **1000x performance advantage for the
+The following benchmarks demonstrate a **1000x-5,000,000x performance advantage for the
 pure-Julia methods over the Julia-accelerated (3x) SciPy ODE solvers** across
 a range of stiff and non-stiff ODEs. These were ran with Julia 1.2, MATLAB
 2019B, deSolve 1.2.5, and SciPy 1.3.1 after verifying negligible overhead on
 interop.
+
+(Yes, it sounds ridiculous, so run the benchmarks yourself)
 
 #### Non-Stiff Problem 1: Lotka-Volterra
 
