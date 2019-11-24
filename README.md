@@ -212,7 +212,7 @@ plot(wp,title="Non-stiff 1: Lotka-Volterra")
 savefig("benchmark1.png")
 ```
 
-![benchmark1]()
+![benchmark1](https://user-images.githubusercontent.com/1814174/69487806-157cb400-0e2e-11ea-876f-c519aed013c0.png)
 
 ```julia
 ## Non-Stiff Problem 2: Rigid Body
@@ -264,7 +264,7 @@ plot(wp,title="Non-stiff 2: Rigid-Body")
 savefig("benchmark2.png")
 ```
 
-![benchmark2]()
+![benchmark2](https://user-images.githubusercontent.com/1814174/69487808-17467780-0e2e-11ea-9db2-324d4e319d07.png)
 
 ```julia
 ## Stiff Problem 1: ROBER
@@ -306,7 +306,7 @@ names = [
   ]
 
 wp = WorkPrecisionSet(prob,abstols,reltols,setups;
-                      names = names,
+                      names = names,print_names = true,
                       save_everystep=false,appxsol=test_sol,
                       maxiters=Int(1e5),numruns=100)
 plot(wp,title="Stiff 1: ROBER")
@@ -366,7 +366,7 @@ names = [
   ]
 
 wp = WorkPrecisionSet(prob,abstols,reltols,setups;
-                      names = names,
+                      names = names,print_names = true,
                       save_everystep=false,appxsol=test_sol,
                       maxiters=Int(1e5),numruns=100)
 plot(wp,title="Stiff 2: Hires")
