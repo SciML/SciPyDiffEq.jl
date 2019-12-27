@@ -10,6 +10,7 @@ struct RK23 <: SciPyAlgoritm end
 struct Radau <: SciPyAlgoritm end
 struct BDF <: SciPyAlgoritm end
 struct LSODA <: SciPyAlgoritm end
+struct odeint <: SciPyAlgoritm end
 
 const integrate = PyNULL()
 
@@ -23,7 +24,7 @@ function DiffEqBase.__solve(
     dense = true, dt = nothing, dtmax = abs(prob.tspan[2] - prob.tspan[1]),
     dtmin = eps(eltype(prob.tspan)),save_everystep = false,
     saveat=eltype(prob.tspan)[],timeseries_errors=true,
-    reltol = 1e-3, abstol = 1e-6,
+    reltol = 1e-3, abstol = 1e-6, maxiters = 10_000,
     kwargs...)
 
     p = prob.p
@@ -55,28 +56,52 @@ function DiffEqBase.__solve(
         __saveat = Array(_saveat)
     end
 
-    sol = integrate.solve_ivp(f,tspan,u0,
-                              first_step = dt,
-                              max_step = dtmax,
-                              rtol = reltol, atol = abstol,
-                              t_eval = __saveat,
-                              dense_output=dense)
+    if alg isa odeint
+        __saveat === nothing && error("saveat is required for odeint!")
+        sol,fullout = integrate.odeint(f,u0,__saveat,
+                                       hmax = dtmax,
+                                       rtol = reltol, atol = abstol,
+                                       full_output=1, tfirst = true,
+                                       mxstep = maxiters)
+        tcur = fullout["tcur"]
+        retcode = fullout["tcur"] == __saveat[end] ? :Success : :Failure
+        ts = __saveat
+        y = sol
 
-    ts = sol["t"]
-    y = sol["y"]
-
-    retcode = sol["success"] == false ? :Failure : :Success
-
-    if typeof(u0) <: AbstractArray
-        timeseries = Vector{typeof(u0)}(undef,length(ts))
-        for i=1:length(ts)
-            timeseries[i] = @view y[:,i]
+        if typeof(u0) <: AbstractArray
+            timeseries = Vector{typeof(u0)}(undef,length(ts))
+            for i=1:length(ts)
+                timeseries[i] = @view y[i,:]
+            end
+        else
+            timeseries = y
         end
+
     else
-        timeseries = y
+        sol = integrate.solve_ivp(f,tspan,u0,
+                                  first_step = dt,
+                                  max_step = dtmax,
+                                  rtol = reltol, atol = abstol,
+                                  t_eval = __saveat,
+                                  dense_output=dense,
+                                  method = string(alg)[13:end-2])
+        ts = sol["t"]
+        y = sol["y"]
+        retcode = sol["success"] == false ? :Failure : :Success
+
+        if typeof(u0) <: AbstractArray
+            timeseries = Vector{typeof(u0)}(undef,length(ts))
+            for i=1:length(ts)
+                timeseries[i] = @view y[:,i]
+            end
+        else
+            timeseries = y
+        end
+
     end
 
-    if dense
+
+    if !(alg isa odeint) && dense
         _interp = PyInterpolation(sol["sol"])
     else
         _interp = DiffEqBase.LinearInterpolation(ts,timeseries)
