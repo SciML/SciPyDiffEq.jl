@@ -431,7 +431,119 @@ savefig("benchmark4.png")
 
 ![benchmark4](https://user-images.githubusercontent.com/1814174/69501114-bec7b680-0ecf-11ea-9095-7b7f2e98d514.png)
 
-## Test Problem Failures
+## odeint Benchmarks
+
+With the newest release wrapping `odeint`, the following benchmarks show that `odeint` is about the same speed
+as MATLAB's ODE solvers:
+
+```julia
+using ParameterizedFunctions, MATLABDiffEq, OrdinaryDiffEq, ODEInterface,
+      ODEInterfaceDiffEq, Plots, Sundials, SciPyDiffEq, deSolveDiffEq
+using DiffEqDevTools
+using LinearAlgebra
+
+rober = @ode_def begin
+  dy₁ = -k₁*y₁+k₃*y₂*y₃
+  dy₂ =  k₁*y₁-k₂*y₂^2-k₃*y₂*y₃
+  dy₃ =  k₂*y₂^2
+end k₁ k₂ k₃
+
+prob = ODEProblem(rober,[1.0,0.0,0.0],(0.0,1e5),[0.04,3e7,1e4])
+sol = solve(prob,CVODE_BDF(),abstol=1/10^14,reltol=1/10^14)
+test_sol = TestSolution(sol)
+
+abstols = 1.0 ./ 10.0 .^ (5:8)
+reltols = 1.0 ./ 10.0 .^ (1:4);
+
+setups = [Dict(:alg=>Rosenbrock23())
+         Dict(:alg=>TRBDF2())
+         Dict(:alg=>RadauIIA5())
+         Dict(:alg=>rodas())
+         Dict(:alg=>radau())
+         #Dict(:alg=>MATLABDiffEq.ode23s())
+         #Dict(:alg=>MATLABDiffEq.ode15s())
+         Dict(:alg=>SciPyDiffEq.odeint())
+         Dict(:alg=>deSolveDiffEq.lsoda())
+         ]
+
+names = [
+ "Julia: Rosenbrock23"
+ "Julia: TRBDF2"
+ "Julia: radau"
+ "Hairer: rodas"
+ "Hairer: radau"
+ #"MATLAB: ode23s"
+ #"MATLAB: ode15s"
+ "SciPy: odeint"
+ "deSolve: lsoda"
+ ]
+
+wp = WorkPrecisionSet(prob,abstols,reltols,setups;
+                     names = names,print_names = true,
+                     dense=false,verbose = false,
+                     save_everystep=false,appxsol=test_sol,
+                     maxiters=Int(1e5))
+plot(wp,title="Stiff 1: ROBER Standard Length")
+savefig("benchmark32.png")
+
+f = @ode_def Hires begin
+  dy1 = -1.71*y1 + 0.43*y2 + 8.32*y3 + 0.0007
+  dy2 = 1.71*y1 - 8.75*y2
+  dy3 = -10.03*y3 + 0.43*y4 + 0.035*y5
+  dy4 = 8.32*y2 + 1.71*y3 - 1.12*y4
+  dy5 = -1.745*y5 + 0.43*y6 + 0.43*y7
+  dy6 = -280.0*y6*y8 + 0.69*y4 + 1.71*y5 -
+           0.43*y6 + 0.69*y7
+  dy7 = 280.0*y6*y8 - 1.81*y7
+  dy8 = -280.0*y6*y8 + 1.81*y7
+end
+
+u0 = zeros(8)
+u0[1] = 1
+u0[8] = 0.0057
+prob = ODEProblem(f,u0,(0.0,321.8122))
+
+sol = solve(prob,Rodas5(),abstol=1/10^14,reltol=1/10^14)
+test_sol = TestSolution(sol)
+
+abstols = 1.0 ./ 10.0 .^ (5:8)
+reltols = 1.0 ./ 10.0 .^ (1:4);
+setups = [Dict(:alg=>Rosenbrock23())
+          Dict(:alg=>TRBDF2())
+          Dict(:alg=>RadauIIA5())
+          Dict(:alg=>rodas())
+          Dict(:alg=>radau())
+          #Dict(:alg=>MATLABDiffEq.ode23s())
+          #Dict(:alg=>MATLABDiffEq.ode15s())
+          Dict(:alg=>SciPyDiffEq.odeint())
+          Dict(:alg=>deSolveDiffEq.lsoda())
+          ]
+
+names = [
+  "Julia: Rosenbrock23"
+  "Julia: TRBDF2"
+  "Julia: radau"
+  "Hairer: rodas"
+  "Hairer: radau"
+  #"MATLAB: ode23s"
+  #"MATLAB: ode15s"
+  "SciPy: odeint"
+  "deSolve: lsoda"
+  ]
+
+wp = WorkPrecisionSet(prob,abstols,reltols,setups;
+                      names = names,print_names = true,
+                      save_everystep=false,appxsol=test_sol,
+                      maxiters=Int(1e5),numruns=100)
+plot(wp,title="Stiff 2: Hires")
+savefig("benchmark4.png")
+```
+
+![](https://user-images.githubusercontent.com/1814174/71502836-535f6480-2840-11ea-9d91-58e4688ced80.png)
+
+![](https://user-images.githubusercontent.com/1814174/71502838-55292800-2840-11ea-96cc-dcefeb7ae326.png)
+
+## SciPy ODE Test Problem Failures
 
 Note that these benchmarks also showcase that the SciPy integrators seem to
 fail on standard stiff ODE benchmark problems. This is probably even more
