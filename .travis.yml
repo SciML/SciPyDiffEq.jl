@@ -10,6 +10,10 @@ julia:
 matrix:
   allow_failures:
     - julia: nightly
+env:
+  global:
+    # Force PyCall to use Conda:
+    - PYTHON=
 notifications:
   email: false
 # uncomment the following lines to override the default test script
