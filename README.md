@@ -33,6 +33,7 @@ SciPyDiffEq.RK23
 SciPyDiffEq.Radau
 SciPyDiffEq.BDF
 SciPyDiffEq.LSODA
+SciPyDiffEq.odeint
 ```
 
 ## Example
