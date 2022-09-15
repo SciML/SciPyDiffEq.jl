@@ -19,12 +19,13 @@ For more efficient solvers, see the
 To install SciPyDiffEq.jl, use the following:
 
 ```julia
-Pkg.clone("https://github.com/JuliaDiffEq/SciPyDiffEq.jl")
+using Pkg
+Pkg.add("SciPyDiffEq")
 ```
 
 ## Using SciPyDiffEq.jl
 
-SciPyDiffEq.jl is simply a solver on the DiffEq common interface, so for details see the [DifferentialEquations.jl documentation](https://juliadiffeq.github.io/DiffEqDocs.jl/dev/).
+SciPyDiffEq.jl is simply a solver on the DiffEq common interface, so for details see the [DifferentialEquations.jl documentation](https://diffeq.sciml.ai/dev/).
 The available algorithms are:
 
 ```julia
