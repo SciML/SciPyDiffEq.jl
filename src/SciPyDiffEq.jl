@@ -67,7 +67,7 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
         ts = __saveat
         y = sol
 
-        if typeof(u0) <: AbstractArray
+        if u0 isa AbstractArray
             timeseries = Vector{typeof(u0)}(undef, length(ts))
             for i in 1:length(ts)
                 timeseries[i] = @view y[i, :]
@@ -88,7 +88,7 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
         y = sol["y"]
         retcode = sol["success"] == false ? :Failure : :Success
 
-        if typeof(u0) <: AbstractArray
+        if u0 isa AbstractArray
             timeseries = Vector{typeof(u0)}(undef, length(ts))
             for i in 1:length(ts)
                 timeseries[i] = @view y[:, i]
