@@ -1,6 +1,7 @@
 module SciPyDiffEq
 
 using Reexport
+using SciMLBase
 @reexport using DiffEqBase
 using PyCall
 
@@ -11,6 +12,9 @@ struct Radau <: SciPyAlgoritm end
 struct BDF <: SciPyAlgoritm end
 struct LSODA <: SciPyAlgoritm end
 struct odeint <: SciPyAlgoritm end
+
+abstract type SciPyBVAlgorithm <: SciMLBase.AbstractBVPAlgorithm end
+struct collocation <: SciPyBVAlgorithm end
 
 const integrate = PyNULL()
 
@@ -109,6 +113,60 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
                               dense = dense,
                               retcode = retcode,
                               timeseries_errors = timeseries_errors)
+end
+
+function DiffEqBase.__solve(prob::DiffEqBase.AbstractBVProblem,
+                            alg::SciPyBVAlgorithm, timeseries = [], ts = [], ks = [];
+                            dense = true, dt = nothing,
+                            dtmax = abs(prob.tspan[2] - prob.tspan[1]),
+                            dtmin = eps(eltype(prob.tspan)), save_everystep = false,
+                            saveat = eltype(prob.tspan)[], timeseries_errors = true,
+                            reltol = 1e-3, maxiters = 10_000,
+                            kwargs...)
+
+    p = prob.p
+    tspan = prob.tspan
+    u0 = prob.u0
+    tvals = tspan[1]:((tspan[2] - tspan[1]) / (length(u0) - 1)):tspan[2]
+
+    if DiffEqBase.isinplace(prob)
+        f = function (t, u)
+            du = similar(u)
+            prob.f(du, u, p, t)
+            du
+        end
+        # SciPy only supports two-point BCs 
+        # so we hack this by only feeding in the start and end as the Julia u
+        # this way indexes of [1] and [end] will work and others will fail
+        bc = function (ustart, uend, p)
+            resid = similar(ustart)
+            prob.bc(resid, [ustart, uend], p, t)
+            resid
+        end
+    else
+        f = (t, u) -> prob.f(u, p, t)
+        bc = (ustart, uend, p) -> prob.bc([ustart, uend], p, 0.0)
+    end
+
+    sol = integrate.solve_bvp(f, bc, tspan, u0, p, tol = reltol)
+    ts = sol["t"]
+    y = sol["y"]
+    retcode = sol["success"] == false ? :Failure : :Success
+
+    if u0 isa AbstractArray
+        timeseries = Vector{typeof(u0)}(undef, length(ts))
+        for i in 1:length(ts)
+            timeseries[i] = @view y[:, i]
+        end
+    else
+        timeseries = y
+    end
+
+    _interp = DiffEqBase.LinearInterpolation(ts, timeseries)
+    DiffEqBase.build_solution(prob, alg, ts, timeseries,
+        interp = _interp,
+        dense = dense,
+        retcode = retcode)
 end
 
 struct PyInterpolation{T} <: DiffEqBase.AbstractDiffEqInterpolation
