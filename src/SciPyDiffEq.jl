@@ -115,12 +115,9 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
                               timeseries_errors = timeseries_errors)
 end
 
-function DiffEqBase.__solve(prob::DiffEqBase.AbstractBVProblem,
+function DiffEqBase.__solve(prob::DiffEqBase.TwoPointBVProblem,
                             alg::SciPyBVAlgorithm, timeseries = [], ts = [], ks = [];
-                            dense = true, dt = nothing,
-                            dtmax = abs(prob.tspan[2] - prob.tspan[1]),
-                            dtmin = eps(eltype(prob.tspan)), save_everystep = false,
-                            saveat = eltype(prob.tspan)[], timeseries_errors = true,
+                            dense = true,
                             reltol = 1e-3, maxiters = 10_000,
                             kwargs...)
 
@@ -135,20 +132,18 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractBVProblem,
             prob.f(du, u, p, t)
             du
         end
-        # SciPy only supports two-point BCs 
-        # so we hack this by only feeding in the start and end as the Julia u
-        # this way indexes of [1] and [end] will work and others will fail
         bc = function (ustart, uend, p)
             resid = similar(ustart)
-            prob.bc(resid, [ustart, uend], p, t)
+            prob.bc[1](resid, ustart, p, tspan[1])
+            prob.bc[2](resid, uend, p, tspan[end])
             resid
         end
     else
         f = (t, u) -> prob.f(u, p, t)
-        bc = (ustart, uend, p) -> prob.bc([ustart, uend], p, 0.0)
+        bc = (ustart, uend, p) -> [prob.bc[1](ustart, p, tspan[1]), prob.bc[2](uend, p, tspan[2])]
     end
 
-    sol = integrate.solve_bvp(f, bc, tspan, u0, p, tol = reltol)
+    sol = integrate.solve_bvp(f, bc, tvals, u0, p, tol = reltol)
     ts = sol["t"]
     y = sol["y"]
     retcode = sol["success"] == false ? :Failure : :Success
