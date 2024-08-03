@@ -14,6 +14,7 @@ and helping new users migrate models over to Julia.
 For more efficient solvers, see the
 [DifferentialEquations.jl documentation](https://github.com/JuliaDiffEq/DifferentialEquations.jl).
 
+
 ## Installation
 
 To install SciPyDiffEq.jl, use the following:
