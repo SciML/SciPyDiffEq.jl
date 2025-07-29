@@ -4,13 +4,13 @@ using Reexport
 @reexport using DiffEqBase
 using PyCall
 
-abstract type SciPyAlgoritm <: DiffEqBase.AbstractODEAlgorithm end
-struct RK45 <: SciPyAlgoritm end
-struct RK23 <: SciPyAlgoritm end
-struct Radau <: SciPyAlgoritm end
-struct BDF <: SciPyAlgoritm end
-struct LSODA <: SciPyAlgoritm end
-struct odeint <: SciPyAlgoritm end
+abstract type SciPyAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
+struct RK45 <: SciPyAlgorithm end
+struct RK23 <: SciPyAlgorithm end
+struct Radau <: SciPyAlgorithm end
+struct BDF <: SciPyAlgorithm end
+struct LSODA <: SciPyAlgorithm end
+struct odeint <: SciPyAlgorithm end
 
 const integrate = PyNULL()
 
@@ -19,7 +19,7 @@ function __init__()
 end
 
 function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
-                            alg::SciPyAlgoritm, timeseries = [], ts = [], ks = [];
+                            alg::SciPyAlgorithm, timeseries = [], ts = [], ks = [];
                             dense = true, dt = nothing,
                             dtmax = abs(prob.tspan[2] - prob.tspan[1]),
                             dtmin = eps(eltype(prob.tspan)), save_everystep = false,
