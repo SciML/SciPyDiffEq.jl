@@ -19,13 +19,13 @@ function __init__()
 end
 
 function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
-                            alg::SciPyAlgoritm, timeseries = [], ts = [], ks = [];
-                            dense = true, dt = nothing,
-                            dtmax = abs(prob.tspan[2] - prob.tspan[1]),
-                            dtmin = eps(eltype(prob.tspan)), save_everystep = false,
-                            saveat = eltype(prob.tspan)[], timeseries_errors = true,
-                            reltol = 1e-3, abstol = 1e-6, maxiters = 10_000,
-                            kwargs...)
+        alg::SciPyAlgoritm, timeseries = [], ts = [], ks = [];
+        dense = true, dt = nothing,
+        dtmax = abs(prob.tspan[2] - prob.tspan[1]),
+        dtmin = eps(eltype(prob.tspan)), save_everystep = false,
+        saveat = eltype(prob.tspan)[], timeseries_errors = true,
+        reltol = 1e-3, abstol = 1e-6, maxiters = 10_000,
+        kwargs...)
     p = prob.p
     tspan = prob.tspan
     u0 = prob.u0
@@ -58,10 +58,10 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
     if alg isa odeint
         __saveat === nothing && error("saveat is required for odeint!")
         sol, fullout = integrate.odeint(f, u0, __saveat,
-                                        hmax = dtmax,
-                                        rtol = reltol, atol = abstol,
-                                        full_output = 1, tfirst = true,
-                                        mxstep = maxiters)
+            hmax = dtmax,
+            rtol = reltol, atol = abstol,
+            full_output = 1, tfirst = true,
+            mxstep = maxiters)
         tcur = fullout["tcur"]
         retcode = fullout["tcur"] == __saveat[end] ? :Success : :Failure
         ts = __saveat
@@ -78,12 +78,12 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
 
     else
         sol = integrate.solve_ivp(f, tspan, u0,
-                                  first_step = dt,
-                                  max_step = dtmax,
-                                  rtol = reltol, atol = abstol,
-                                  t_eval = __saveat,
-                                  dense_output = dense,
-                                  method = string(alg)[13:(end - 2)])
+            first_step = dt,
+            max_step = dtmax,
+            rtol = reltol, atol = abstol,
+            t_eval = __saveat,
+            dense_output = dense,
+            method = string(alg)[13:(end - 2)])
         ts = sol["t"]
         y = sol["y"]
         retcode = sol["success"] == false ? :Failure : :Success
@@ -105,10 +105,10 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
     end
 
     DiffEqBase.build_solution(prob, alg, ts, timeseries,
-                              interp = _interp,
-                              dense = dense,
-                              retcode = retcode,
-                              timeseries_errors = timeseries_errors)
+        interp = _interp,
+        dense = dense,
+        retcode = retcode,
+        timeseries_errors = timeseries_errors)
 end
 
 struct PyInterpolation{T} <: DiffEqBase.AbstractDiffEqInterpolation
