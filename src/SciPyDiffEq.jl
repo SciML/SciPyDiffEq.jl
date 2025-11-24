@@ -1,6 +1,7 @@
 module SciPyDiffEq
 
 using Reexport
+using SciMLBase
 @reexport using DiffEqBase
 using PyCall
 
@@ -11,6 +12,9 @@ struct Radau <: SciPyAlgorithm end
 struct BDF <: SciPyAlgorithm end
 struct LSODA <: SciPyAlgorithm end
 struct odeint <: SciPyAlgorithm end
+
+abstract type SciPyBVAlgorithm <: SciMLBase.AbstractBVPAlgorithm end
+struct collocation <: SciPyBVAlgorithm end
 
 const integrate = PyNULL()
 
@@ -110,6 +114,55 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
         dense = dense,
         retcode = retcode,
         timeseries_errors = timeseries_errors)
+end
+
+function DiffEqBase.__solve(prob::DiffEqBase.TwoPointBVProblem,
+                            alg::SciPyBVAlgorithm, timeseries = [], ts = [], ks = [];
+                            dense = true,
+                            reltol = 1e-3, maxiters = 10_000,
+                            kwargs...)
+
+    p = prob.p
+    tspan = prob.tspan
+    u0 = prob.u0
+    tvals = tspan[1]:((tspan[2] - tspan[1]) / (length(u0) - 1)):tspan[2]
+
+    if DiffEqBase.isinplace(prob)
+        f = function (t, u)
+            du = similar(u)
+            prob.f(du, u, p, t)
+            du
+        end
+        bc = function (ustart, uend, p)
+            resid = similar(ustart)
+            prob.bc[1](resid, ustart, p, tspan[1])
+            prob.bc[2](resid, uend, p, tspan[end])
+            resid
+        end
+    else
+        f = (t, u) -> prob.f(u, p, t)
+        bc = (ustart, uend, p) -> [prob.bc[1](ustart, p, tspan[1]), prob.bc[2](uend, p, tspan[2])]
+    end
+
+    sol = integrate.solve_bvp(f, bc, tvals, u0, p, tol = reltol)
+    ts = sol["t"]
+    y = sol["y"]
+    retcode = sol["success"] == false ? :Failure : :Success
+
+    if u0 isa AbstractArray
+        timeseries = Vector{typeof(u0)}(undef, length(ts))
+        for i in 1:length(ts)
+            timeseries[i] = @view y[:, i]
+        end
+    else
+        timeseries = y
+    end
+
+    _interp = DiffEqBase.LinearInterpolation(ts, timeseries)
+    DiffEqBase.build_solution(prob, alg, ts, timeseries,
+        interp = _interp,
+        dense = dense,
+        retcode = retcode)
 end
 
 struct PyInterpolation{T} <: DiffEqBase.AbstractDiffEqInterpolation
