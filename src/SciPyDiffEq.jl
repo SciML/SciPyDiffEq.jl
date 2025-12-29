@@ -2,7 +2,9 @@ module SciPyDiffEq
 
 using Reexport
 @reexport using DiffEqBase
+using DiffEqBase: ReturnCode
 using PyCall
+using PrecompileTools
 
 abstract type SciPyAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
 struct RK45 <: SciPyAlgorithm end
@@ -64,7 +66,7 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
             full_output = 1, tfirst = true,
             mxstep = maxiters)
         tcur = fullout["tcur"]
-        retcode = fullout["tcur"] == __saveat[end] ? :Success : :Failure
+        retcode = fullout["tcur"] == __saveat[end] ? ReturnCode.Success : ReturnCode.Failure
         ts = __saveat
         y = sol
 
@@ -87,7 +89,7 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
             method = string(alg)[13:(end - 2)])
         ts = sol["t"]
         y = sol["y"]
-        retcode = sol["success"] == false ? :Failure : :Success
+        retcode = sol["success"] == false ? ReturnCode.Failure : ReturnCode.Success
 
         if u0 isa AbstractArray
             timeseries = Vector{typeof(u0)}(undef, length(ts))
@@ -123,5 +125,30 @@ function (PI::PyInterpolation)(t, idxs, deriv, p, continuity)
     end
 end
 DiffEqBase.interp_summary(::PyInterpolation) = "Interpolation from SciPy"
+
+@setup_workload begin
+    # Define a simple test problem for precompilation
+    function _precompile_f(u, p, t)
+        du1 = 10.0 * (u[2] - u[1])
+        du2 = u[1] * (28.0 - u[3]) - u[2]
+        du3 = u[1] * u[2] - (8.0 / 3.0) * u[3]
+        [du1, du2, du3]
+    end
+    _precompile_u0 = [1.0, 0.0, 0.0]
+    _precompile_tspan = (0.0, 1.0)
+
+    @compile_workload begin
+        # Only precompile if scipy is available
+        # This check is needed because PyCall may not have scipy at precompile time
+        try
+            _integrate = pyimport("scipy.integrate")
+            prob = ODEProblem(_precompile_f, _precompile_u0, _precompile_tspan)
+            # Precompile the most commonly used solver (RK45)
+            solve(prob, RK45())
+        catch
+            # scipy not available at precompile time, skip workload
+        end
+    end
+end
 
 end # module
