@@ -6,12 +6,72 @@ using DiffEqBase: ReturnCode
 using PyCall
 using PrecompileTools
 
+"""
+    SciPyAlgorithm
+
+Abstract supertype for all SciPy ODE solver algorithms.
+"""
 abstract type SciPyAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
+
+"""
+    RK45()
+
+Explicit Runge-Kutta method of order 5(4) from SciPy. This is the Dormand-Prince
+method, suitable for non-stiff problems.
+
+See also: [`RK23`](@ref), [`Radau`](@ref), [`BDF`](@ref), [`LSODA`](@ref)
+"""
 struct RK45 <: SciPyAlgorithm end
+
+"""
+    RK23()
+
+Explicit Runge-Kutta method of order 3(2) from SciPy. Suitable for non-stiff
+problems with lower accuracy requirements.
+
+See also: [`RK45`](@ref), [`Radau`](@ref), [`BDF`](@ref), [`LSODA`](@ref)
+"""
 struct RK23 <: SciPyAlgorithm end
+
+"""
+    Radau()
+
+Implicit Runge-Kutta method of the Radau IIA family of order 5 from SciPy.
+Suitable for stiff problems.
+
+See also: [`RK45`](@ref), [`RK23`](@ref), [`BDF`](@ref), [`LSODA`](@ref)
+"""
 struct Radau <: SciPyAlgorithm end
+
+"""
+    BDF()
+
+Implicit multi-step variable-order (1 to 5) method based on backward
+differentiation formulas from SciPy. Suitable for stiff problems.
+
+See also: [`RK45`](@ref), [`RK23`](@ref), [`Radau`](@ref), [`LSODA`](@ref)
+"""
 struct BDF <: SciPyAlgorithm end
+
+"""
+    LSODA()
+
+Adams/BDF method with automatic stiffness detection and switching from SciPy.
+Originally from the FORTRAN library ODEPACK.
+
+See also: [`RK45`](@ref), [`RK23`](@ref), [`Radau`](@ref), [`BDF`](@ref), [`odeint`](@ref)
+"""
 struct LSODA <: SciPyAlgorithm end
+
+"""
+    odeint()
+
+SciPy's `odeint` function, which wraps the FORTRAN solver LSODA from ODEPACK.
+This is the legacy SciPy interface. Note that `saveat` is required when using
+this algorithm.
+
+See also: [`LSODA`](@ref), [`RK45`](@ref), [`BDF`](@ref)
+"""
 struct odeint <: SciPyAlgorithm end
 
 const integrate = PyNULL()

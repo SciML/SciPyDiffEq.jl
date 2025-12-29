@@ -12,7 +12,7 @@ send the differential equation over to Python and solve it.
 Note that this package isn't for production use and is mostly just for benchmarking
 and helping new users migrate models over to Julia.
 For more efficient solvers, see the
-[DifferentialEquations.jl documentation](https://github.com/JuliaDiffEq/DifferentialEquations.jl).
+[DifferentialEquations.jl documentation](https://docs.sciml.ai/DiffEqDocs/stable/).
 
 ## Installation
 
@@ -83,7 +83,7 @@ import timeit
 import numba
 def f(u, t):
     x, y, z = u
-    return [10.0 * (y - x), x * (28.0 - z) - y, x * y - 2.66 * z]
+    return [10.0 * (y - x), x * (28.0 - z) - y, x * y - (8.0/3.0) * z]
 
 u0 = [1.0,0.0,0.0]
 tspan = (0., 100.)
@@ -118,7 +118,7 @@ import timeit
 import numba
 def f(t,u):
     x, y, z = u
-    return [10.0 * (y - x), x * (28.0 - z) - y, x * y - 2.66 * z]
+    return [10.0 * (y - x), x * (28.0 - z) - y, x * y - (8.0/3.0) * z]
 
 u0 = [1.0,0.0,0.0]
 tspan = (0.0, 100.0)
