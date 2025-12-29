@@ -1,15 +1,17 @@
 name = "SciPyDiffEq"
 uuid = "505e40e9-d84e-434c-8501-7161967c02cb"
-authors = ["Chris Rackauckas <accounts@chrisrackauckas.com>"]
 version = "0.2.1"
+authors = ["Chris Rackauckas <accounts@chrisrackauckas.com>"]
 
 [deps]
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
+PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
 [compat]
 DiffEqBase = "6"
+PrecompileTools = "1"
 PyCall = "1.91"
 Reexport = "0.2, 1.0"
 julia = "1"
