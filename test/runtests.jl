@@ -1,5 +1,14 @@
 using SciPyDiffEq
+using SciPyDiffEq: ODEProblem, solve
 using Test
+using ExplicitImports
+
+@testset "ExplicitImports" begin
+    @test check_no_implicit_imports(SciPyDiffEq) === nothing
+    @test check_no_stale_explicit_imports(SciPyDiffEq) === nothing
+end
+
+@testset "SciPy Solvers" begin
 
 function lorenz(u, p, t)
     du1 = 10.0(u[2] - u[1])
@@ -39,3 +48,5 @@ sol = solve(prob, SciPyDiffEq.odeint())
 sol(4.0)
 
 #using Plots; plot(sol,vars=(1,2,3))
+
+end # @testset "SciPy Solvers"
