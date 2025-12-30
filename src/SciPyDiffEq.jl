@@ -1,10 +1,12 @@
 module SciPyDiffEq
 
-using Reexport
+using Reexport: @reexport
+using DiffEqBase: DiffEqBase, ReturnCode
 @reexport using DiffEqBase
-using DiffEqBase: ReturnCode
-using PyCall
-using PrecompileTools
+using SciMLBase: SciMLBase, ODEProblem
+using CommonSolve: solve
+using PyCall: PyCall, PyNULL, pyimport, pyimport_conda
+using PrecompileTools: PrecompileTools, @compile_workload, @setup_workload
 
 """
     SciPyAlgorithm
