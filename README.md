@@ -23,9 +23,11 @@ using Pkg
 Pkg.add("SciPyDiffEq")
 ```
 
+The package will automatically install SciPy via Conda.jl on first use if it's not already available.
+
 ## Using SciPyDiffEq.jl
 
-SciPyDiffEq.jl is simply a solver on the DiffEq common interface, so for details see the [DifferentialEquations.jl documentation](https://diffeq.sciml.ai/dev/).
+SciPyDiffEq.jl is simply a solver on the DiffEq common interface, so for details see the [DifferentialEquations.jl documentation](https://docs.sciml.ai/DiffEqDocs/stable/).
 The available algorithms are:
 
 ```julia
@@ -152,6 +154,11 @@ benchmarks are gone because any measurement here is accelerating SciPy more
 than standard accelerated use.
 
 ## Benchmarks
+
+**Note:** The following benchmark examples use deprecated APIs (`@ode_def_bare`, `@ode_def`)
+that are no longer available in current versions of DifferentialEquations.jl.
+For modern benchmarking code, please refer to the
+[SciMLBenchmarks.jl repository](https://github.com/SciML/SciMLBenchmarks.jl).
 
 The following benchmarks demonstrate a **50x-1,000x performance advantage for the
 pure-Julia methods over the Julia-accelerated (3x) SciPy ODE solvers** across
