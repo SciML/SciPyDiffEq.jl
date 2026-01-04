@@ -79,17 +79,19 @@ struct odeint <: SciPyAlgorithm end
 const integrate = PyNULL()
 
 function __init__()
-    copy!(integrate, pyimport_conda("scipy.integrate", "scipy", "conda-forge"))
+    return copy!(integrate, pyimport_conda("scipy.integrate", "scipy", "conda-forge"))
 end
 
-function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
+function DiffEqBase.__solve(
+        prob::DiffEqBase.AbstractODEProblem,
         alg::SciPyAlgorithm, timeseries = [], ts = [], ks = [];
         dense = true, dt = nothing,
         dtmax = abs(prob.tspan[2] - prob.tspan[1]),
         dtmin = eps(eltype(prob.tspan)), save_everystep = false,
         saveat = eltype(prob.tspan)[], timeseries_errors = true,
-        reltol = 1e-3, abstol = 1e-6, maxiters = 10_000,
-        kwargs...)
+        reltol = 1.0e-3, abstol = 1.0e-6, maxiters = 10_000,
+        kwargs...
+    )
     p = prob.p
     tspan = prob.tspan
     u0 = prob.u0
@@ -98,7 +100,7 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
         f = function (t, u)
             du = similar(u)
             prob.f(du, u, p, t)
-            du
+            return du
         end
     else
         f = (t, u) -> prob.f(u, p, t)
@@ -122,11 +124,13 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
     if alg isa odeint
         __saveat === nothing && error("saveat is required for odeint!")
         sol,
-        fullout = integrate.odeint(f, u0, __saveat,
+            fullout = integrate.odeint(
+            f, u0, __saveat,
             hmax = dtmax,
             rtol = reltol, atol = abstol,
             full_output = 1, tfirst = true,
-            mxstep = maxiters)
+            mxstep = maxiters
+        )
         tcur = fullout["tcur"]
         retcode = fullout["tcur"] == __saveat[end] ? ReturnCode.Success : ReturnCode.Failure
         ts = __saveat
@@ -142,13 +146,15 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
         end
 
     else
-        sol = integrate.solve_ivp(f, tspan, u0,
+        sol = integrate.solve_ivp(
+            f, tspan, u0,
             first_step = dt,
             max_step = dtmax,
             rtol = reltol, atol = abstol,
             t_eval = __saveat,
             dense_output = dense,
-            method = string(alg)[13:(end - 2)])
+            method = string(alg)[13:(end - 2)]
+        )
         ts = sol["t"]
         y = sol["y"]
         retcode = sol["success"] == false ? ReturnCode.Failure : ReturnCode.Success
@@ -169,11 +175,13 @@ function DiffEqBase.__solve(prob::DiffEqBase.AbstractODEProblem,
         _interp = DiffEqBase.LinearInterpolation(ts, timeseries)
     end
 
-    DiffEqBase.build_solution(prob, alg, ts, timeseries,
+    return DiffEqBase.build_solution(
+        prob, alg, ts, timeseries,
         interp = _interp,
         dense = dense,
         retcode = retcode,
-        timeseries_errors = timeseries_errors)
+        timeseries_errors = timeseries_errors
+    )
 end
 
 struct PyInterpolation{T} <: DiffEqBase.AbstractDiffEqInterpolation
