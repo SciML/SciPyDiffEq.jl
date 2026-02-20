@@ -132,7 +132,7 @@ function DiffEqBase.__solve(
             mxstep = maxiters
         )
         tcur = fullout["tcur"]
-        retcode = fullout["tcur"] == __saveat[end] ? ReturnCode.Success : ReturnCode.Failure
+        retcode = first(tcur) >= __saveat[end] ? ReturnCode.Success : ReturnCode.Failure
         ts = __saveat
         y = sol
 

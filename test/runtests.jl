@@ -1,5 +1,6 @@
 using SciPyDiffEq
 using SciPyDiffEq: ODEProblem, solve
+using SciMLBase: successful_retcode
 using Test
 using ExplicitImports
 
@@ -20,11 +21,17 @@ end
     tspan = (0.0, 100.0)
     prob = ODEProblem(lorenz, u0, tspan)
     sol = solve(prob, SciPyDiffEq.RK45())
+    @test successful_retcode(sol)
     sol = solve(prob, SciPyDiffEq.RK23())
+    @test successful_retcode(sol)
     sol = solve(prob, SciPyDiffEq.Radau())
+    @test successful_retcode(sol)
     sol = solve(prob, SciPyDiffEq.BDF())
+    @test successful_retcode(sol)
     sol = solve(prob, SciPyDiffEq.LSODA())
+    @test successful_retcode(sol)
     sol = solve(prob, SciPyDiffEq.odeint())
+    @test successful_retcode(sol)
 
     function lorenz(du, u, p, t)
         du[1] = 10.0(u[2] - u[1])
@@ -35,16 +42,22 @@ end
     tspan = (0.0, 100.0)
     prob = ODEProblem(lorenz, u0, tspan)
     sol = solve(prob, SciPyDiffEq.RK45())
+    @test successful_retcode(sol)
     sol(4.0)
     sol = solve(prob, SciPyDiffEq.RK23())
+    @test successful_retcode(sol)
     sol(4.0)
     sol = solve(prob, SciPyDiffEq.Radau())
+    @test successful_retcode(sol)
     sol(4.0)
     sol = solve(prob, SciPyDiffEq.BDF())
+    @test successful_retcode(sol)
     sol(4.0)
     sol = solve(prob, SciPyDiffEq.LSODA())
+    @test successful_retcode(sol)
     sol(4.0)
     sol = solve(prob, SciPyDiffEq.odeint())
+    @test successful_retcode(sol)
     sol(4.0)
 
     #using Plots; plot(sol,vars=(1,2,3))
