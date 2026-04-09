@@ -1,6 +1,6 @@
 name = "SciPyDiffEq"
 uuid = "505e40e9-d84e-434c-8501-7161967c02cb"
-version = "0.2.4"
+version = "0.3.0"
 authors = ["Chris Rackauckas <accounts@chrisrackauckas.com>"]
 
 [deps]
@@ -18,7 +18,7 @@ ExplicitImports = "1.14.0"
 PrecompileTools = "1.2"
 PyCall = "1.91"
 Reexport = "1.0"
-SciMLBase = "2.131.0"
+SciMLBase = "2.131.0, 3"
 julia = "1.10"
 
 [extras]
