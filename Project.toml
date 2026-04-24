@@ -13,7 +13,7 @@ SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 
 [compat]
 CommonSolve = "0.2.6"
-DiffEqBase = "6.174"
+DiffEqBase = "6.174, 7.0"
 ExplicitImports = "1.14.0"
 PrecompileTools = "1.2"
 PyCall = "1.91"
