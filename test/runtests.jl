@@ -2,12 +2,11 @@ using SciPyDiffEq
 using SciPyDiffEq: ODEProblem, solve
 using SciMLBase: successful_retcode
 using Test
+using ExplicitImports
 
 const GROUP = get(ENV, "GROUP", "All")
 
 if GROUP == "All" || GROUP == "Core"
-    using ExplicitImports
-
     @testset "ExplicitImports" begin
         @test check_no_implicit_imports(SciPyDiffEq) === nothing
         @test check_no_stale_explicit_imports(SciPyDiffEq) === nothing
