@@ -11,18 +11,11 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 jobs:
   tests:
-    name: "Tests"
-    strategy:
-      fail-fast: false
-      matrix:
-        group:
-          - Core
-        version:
-          - '1'
-          - 'lts'
-          - 'pre'
-    uses: "SciML/.github/.github/workflows/tests.yml@v1"
+    uses: "SciML/.github/.github/workflows/grouped-tests.yml@v1"
     with:
-      group: "${{ matrix.group }}"
-      julia-version: "${{ matrix.version }}"
+      # PyCall builds against the runner's system python3; `using SciPyDiffEq`
+      # then resolves scipy via pyimport_conda, which falls back to a plain
+      # pyimport here (PyCall is not Conda-managed). Install scipy into that
+      # system python so the import succeeds.
+      apt-packages: "python3-scipy"
     secrets: "inherit"

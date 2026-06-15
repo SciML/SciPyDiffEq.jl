@@ -21,4 +21,10 @@ jobs:
     with:
       group: "${{ matrix.group }}"
       julia-version: "lts"
+      skip: "Pkg,TOML"
+      # PyCall builds against the runner's system python3; `using SciPyDiffEq`
+      # then resolves scipy via pyimport_conda, which falls back to a plain
+      # pyimport here (PyCall is not Conda-managed). Install scipy into that
+      # system python so the import succeeds.
+      apt-packages: "python3-scipy"
     secrets: "inherit"
