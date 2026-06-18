@@ -15,7 +15,9 @@ jobs:
     with:
       # PyCall builds against the runner's system python3; `using SciPyDiffEq`
       # then resolves scipy via pyimport_conda, which falls back to a plain
-      # pyimport here (PyCall is not Conda-managed). Install scipy into that
-      # system python so the import succeeds.
-      apt-packages: "python3-scipy"
+      # pyimport here (PyCall is not Conda-managed). python3-dev provides the
+      # libpython that PyCall's build dlopens (without it the build errors with
+      # "Couldn't find libpython"); python3-scipy puts scipy in that system
+      # python so the import succeeds.
+      apt-packages: "python3-dev python3-scipy"
     secrets: "inherit"
