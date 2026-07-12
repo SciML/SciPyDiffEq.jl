@@ -1,12 +1,15 @@
-using SciPyDiffEq
-using Aqua
-using JET
-using Test
+using SciMLTesting, SciPyDiffEq, JET, Test
 
-@testset "Aqua" begin
-    Aqua.test_all(SciPyDiffEq)
-end
-
-@testset "JET" begin
-    JET.test_package(SciPyDiffEq; target_defined_modules = true)
-end
+run_qa(
+    SciPyDiffEq;
+    explicit_imports = true,
+    jet_kwargs = (; target_modules = (SciPyDiffEq,)),
+    ei_kwargs = (;
+        # SciMLBase-owned interface names extended/used here that are not public API.
+        all_qualified_accesses_are_public = (;
+            ignore = (
+                :AbstractDiffEqInterpolation, :LinearInterpolation, :__solve, :interp_summary,
+            ),
+        ),
+    ),
+)

@@ -13,7 +13,7 @@ using PrecompileTools: PrecompileTools, @compile_workload, @setup_workload
 
 Abstract supertype for all SciPy ODE solver algorithms.
 """
-abstract type SciPyAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
+abstract type SciPyAlgorithm <: SciMLBase.AbstractODEAlgorithm end
 
 """
     RK45()
@@ -82,8 +82,8 @@ function __init__()
     return copy!(integrate, pyimport_conda("scipy.integrate", "scipy", "conda-forge"))
 end
 
-function DiffEqBase.__solve(
-        prob::DiffEqBase.AbstractODEProblem,
+function SciMLBase.__solve(
+        prob::SciMLBase.AbstractODEProblem,
         alg::SciPyAlgorithm, timeseries = [], ts = [], ks = [];
         dense = true, dt = nothing,
         dtmax = abs(prob.tspan[2] - prob.tspan[1]),
@@ -172,10 +172,10 @@ function DiffEqBase.__solve(
     if !(alg isa odeint) && dense
         _interp = PyInterpolation(sol["sol"])
     else
-        _interp = DiffEqBase.LinearInterpolation(ts, timeseries)
+        _interp = SciMLBase.LinearInterpolation(ts, timeseries)
     end
 
-    return DiffEqBase.build_solution(
+    return SciMLBase.build_solution(
         prob, alg, ts, timeseries,
         interp = _interp,
         dense = dense,
@@ -184,7 +184,7 @@ function DiffEqBase.__solve(
     )
 end
 
-struct PyInterpolation{T} <: DiffEqBase.AbstractDiffEqInterpolation
+struct PyInterpolation{T} <: SciMLBase.AbstractDiffEqInterpolation
     pydense::T
 end
 function (PI::PyInterpolation)(t, idxs, deriv, p, continuity)
@@ -194,7 +194,7 @@ function (PI::PyInterpolation)(t, idxs, deriv, p, continuity)
         return PI.pydense(t)
     end
 end
-DiffEqBase.interp_summary(::PyInterpolation) = "Interpolation from SciPy"
+SciMLBase.interp_summary(::PyInterpolation) = "Interpolation from SciPy"
 
 @setup_workload begin
     # Define a simple test problem for precompilation
