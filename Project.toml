@@ -1,6 +1,6 @@
 name = "SciPyDiffEq"
 uuid = "505e40e9-d84e-434c-8501-7161967c02cb"
-version = "0.2.7"
+version = "0.2.8"
 authors = ["Chris Rackauckas <accounts@chrisrackauckas.com>"]
 
 [deps]
