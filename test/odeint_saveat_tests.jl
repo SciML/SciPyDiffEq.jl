@@ -1,5 +1,6 @@
 using SciPyDiffEq
-using SciPyDiffEq: ODEProblem, solve
+using CommonSolve: solve
+using SciMLBase: ODEProblem
 using SciMLBase: successful_retcode
 using Test
 
