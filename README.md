@@ -42,6 +42,8 @@ SciPyDiffEq.odeint
 ## Example
 
 ```julia
+using CommonSolve: solve
+using SciMLBase: ODEProblem
 using SciPyDiffEq
 
 function lorenz(u,p,t)
@@ -62,7 +64,10 @@ In the following we can measure the overhead and show that using SciPy from Juli
 is about 3x faster than using SciPy with Numba. Using SciPyDiffEq:
 
 ```julia
-using SciPyDiffEq, BenchmarkTools
+using BenchmarkTools
+using CommonSolve: solve
+using SciMLBase: ODEProblem
+using SciPyDiffEq
 
 function lorenz(u,p,t)
     du1 = 10.0(u[2]-u[1])

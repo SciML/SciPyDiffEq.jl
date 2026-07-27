@@ -1,17 +1,32 @@
 module SciPyDiffEq
 
-using Reexport: @reexport
-using DiffEqBase: DiffEqBase, ReturnCode
-@reexport using DiffEqBase
-using SciMLBase: SciMLBase, ODEProblem
 using CommonSolve: solve
-using PyCall: PyCall, PyNULL, pyimport, pyimport_conda
-using PrecompileTools: PrecompileTools, @compile_workload, @setup_workload
+using DiffEqBase: ReturnCode, isinplace
+import SciMLBase
+import SciMLBase: __solve, interp_summary
+using SciMLBase: AbstractDiffEqInterpolation, LinearInterpolation, ODEProblem
+using SciMLPublic: @public
+using PyCall: PyNULL, pyimport, pyimport_conda
+using PrecompileTools: @compile_workload, @setup_workload
+
+@public SciPyAlgorithm, RK45, RK23, Radau, BDF, LSODA, odeint
 
 """
     SciPyAlgorithm
 
 Abstract supertype for all SciPy ODE solver algorithms.
+
+Use a concrete subtype as the algorithm argument to `solve`.
+
+# Example
+
+```julia
+using CommonSolve: solve
+using SciMLBase: ODEProblem
+
+prob = ODEProblem((u, p, t) -> -u, 1.0, (0.0, 1.0))
+sol = solve(prob, RK45())
+```
 """
 abstract type SciPyAlgorithm <: SciMLBase.AbstractODEAlgorithm end
 
@@ -20,6 +35,12 @@ abstract type SciPyAlgorithm <: SciMLBase.AbstractODEAlgorithm end
 
 Explicit Runge-Kutta method of order 5(4) from SciPy. This is the Dormand-Prince
 method, suitable for non-stiff problems.
+
+# Example
+
+```julia
+sol = solve(prob, RK45())
+```
 
 See also: [`RK23`](@ref), [`Radau`](@ref), [`BDF`](@ref), [`LSODA`](@ref)
 """
@@ -31,6 +52,12 @@ struct RK45 <: SciPyAlgorithm end
 Explicit Runge-Kutta method of order 3(2) from SciPy. Suitable for non-stiff
 problems with lower accuracy requirements.
 
+# Example
+
+```julia
+sol = solve(prob, RK23())
+```
+
 See also: [`RK45`](@ref), [`Radau`](@ref), [`BDF`](@ref), [`LSODA`](@ref)
 """
 struct RK23 <: SciPyAlgorithm end
@@ -40,6 +67,12 @@ struct RK23 <: SciPyAlgorithm end
 
 Implicit Runge-Kutta method of the Radau IIA family of order 5 from SciPy.
 Suitable for stiff problems.
+
+# Example
+
+```julia
+sol = solve(prob, Radau())
+```
 
 See also: [`RK45`](@ref), [`RK23`](@ref), [`BDF`](@ref), [`LSODA`](@ref)
 """
@@ -51,6 +84,12 @@ struct Radau <: SciPyAlgorithm end
 Implicit multi-step variable-order (1 to 5) method based on backward
 differentiation formulas from SciPy. Suitable for stiff problems.
 
+# Example
+
+```julia
+sol = solve(prob, BDF())
+```
+
 See also: [`RK45`](@ref), [`RK23`](@ref), [`Radau`](@ref), [`LSODA`](@ref)
 """
 struct BDF <: SciPyAlgorithm end
@@ -60,6 +99,12 @@ struct BDF <: SciPyAlgorithm end
 
 Adams/BDF method with automatic stiffness detection and switching from SciPy.
 Originally from the FORTRAN library ODEPACK.
+
+# Example
+
+```julia
+sol = solve(prob, LSODA())
+```
 
 See also: [`RK45`](@ref), [`RK23`](@ref), [`Radau`](@ref), [`BDF`](@ref), [`odeint`](@ref)
 """
@@ -72,6 +117,12 @@ SciPy's `odeint` function, which wraps the FORTRAN solver LSODA from ODEPACK.
 This is the legacy SciPy interface. Note that `saveat` is required when using
 this algorithm.
 
+# Example
+
+```julia
+sol = solve(prob, odeint(); saveat = 0.1)
+```
+
 See also: [`LSODA`](@ref), [`RK45`](@ref), [`BDF`](@ref)
 """
 struct odeint <: SciPyAlgorithm end
@@ -82,7 +133,7 @@ function __init__()
     return copy!(integrate, pyimport_conda("scipy.integrate", "scipy", "conda-forge"))
 end
 
-function SciMLBase.__solve(
+function __solve(
         prob::SciMLBase.AbstractODEProblem,
         alg::SciPyAlgorithm, timeseries = [], ts = [], ks = [];
         dense = true, dt = nothing,
@@ -96,7 +147,7 @@ function SciMLBase.__solve(
     tspan = prob.tspan
     u0 = prob.u0
 
-    if DiffEqBase.isinplace(prob)
+    if isinplace(prob)
         f = function (t, u)
             du = similar(u)
             prob.f(du, u, p, t)
@@ -172,7 +223,7 @@ function SciMLBase.__solve(
     if !(alg isa odeint) && dense
         _interp = PyInterpolation(sol["sol"])
     else
-        _interp = SciMLBase.LinearInterpolation(ts, timeseries)
+        _interp = LinearInterpolation(ts, timeseries)
     end
 
     return SciMLBase.build_solution(
@@ -184,7 +235,7 @@ function SciMLBase.__solve(
     )
 end
 
-struct PyInterpolation{T} <: SciMLBase.AbstractDiffEqInterpolation
+struct PyInterpolation{T} <: AbstractDiffEqInterpolation
     pydense::T
 end
 function (PI::PyInterpolation)(t, idxs, deriv, p, continuity)
@@ -194,7 +245,7 @@ function (PI::PyInterpolation)(t, idxs, deriv, p, continuity)
         return PI.pydense(t)
     end
 end
-SciMLBase.interp_summary(::PyInterpolation) = "Interpolation from SciPy"
+interp_summary(::PyInterpolation) = "Interpolation from SciPy"
 
 @setup_workload begin
     # Define a simple test problem for precompilation
