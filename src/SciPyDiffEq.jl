@@ -11,6 +11,21 @@ using PrecompileTools: @compile_workload, @setup_workload
 
 @public SciPyAlgorithm, RK45, RK23, Radau, BDF, LSODA, odeint
 
+# The SciML common interface that SciPyDiffEq reexports (see the `export` block below),
+# so that `using SciPyDiffEq` on its own is enough to build an ODE problem, solve it, and
+# inspect the result -- the workflow the README and docs/src/index.md document. Every
+# name stays owned and documented upstream.
+using SciMLBase: DEStats, EnsembleAnalysis, EnsembleDistributed, EnsembleProblem,
+    EnsembleSerial, EnsembleSolution, EnsembleSplitThreads, EnsembleSummary,
+    EnsembleThreads, NullParameters, ODEFunction, ODESolution, remake, successful_retcode
+
+# Reexported SciML common interface; approved via `reexports_allow` in test/qa/qa.jl.
+# `ODEProblem` and `ReturnCode` are imported above; `solve` is CommonSolve's.
+export DEStats, EnsembleAnalysis, EnsembleDistributed, EnsembleProblem, EnsembleSerial,
+    EnsembleSolution, EnsembleSplitThreads, EnsembleSummary, EnsembleThreads,
+    NullParameters, ODEFunction, ODEProblem, ODESolution, ReturnCode, remake, solve,
+    successful_retcode
+
 """
     SciPyAlgorithm
 
@@ -21,11 +36,10 @@ Use a concrete subtype as the algorithm argument to `solve`.
 # Example
 
 ```julia
-using CommonSolve: solve
-using SciMLBase: ODEProblem
+using SciPyDiffEq
 
 prob = ODEProblem((u, p, t) -> -u, 1.0, (0.0, 1.0))
-sol = solve(prob, RK45())
+sol = solve(prob, SciPyDiffEq.RK45())
 ```
 """
 abstract type SciPyAlgorithm <: SciMLBase.AbstractODEAlgorithm end
