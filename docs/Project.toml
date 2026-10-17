@@ -1,0 +1,7 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+SciPyDiffEq = "505e40e9-d84e-434c-8501-7161967c02cb"
+
+[compat]
+Documenter = "1"
+julia = "1.10"
